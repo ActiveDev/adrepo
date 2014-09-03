@@ -2,8 +2,6 @@ package com.activedevsolutions.helpful.threading;
 
 import static org.junit.Assert.*;
 
-import java.util.UUID;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,38 +15,53 @@ public class ADPermitTest {
 	}
 
 	@Test
-	public void testIsValidPermit() {
+	public void testMismatchIdentifier() {
+		try {
+			new ADPermit(semaphore, "fakevalue");
+			fail();
+		}
+		catch (IllegalArgumentException iae) {
+			assertTrue(true);
+		} // end try catch
+	}
+
+	@Test
+	public void testIsValidPermitNoSemaphore() {
+		try {
+			new ADPermit(null, "fakevalue");
+			fail();
+		}
+		catch (IllegalArgumentException iae) {
+			assertTrue(true);
+		} // end try catch
+	}
+
+	@Test
+	public void testIsValidPermitNoIdentifier() {
+		try {
+			new ADPermit(semaphore, null);
+			fail();
+		}
+		catch (IllegalArgumentException iae) {
+			assertTrue(true);
+		} // end try catch
+	}
+
+	@Test
+	public void testGetIdentifier() {
 		ADPermit permit = semaphore.acquireWithPermit();
-		assertTrue(permit.isValidPermit());		
+		assertNotNull(permit.getGUUID());		
 	}
-
-	@Test
-	public void testIsValidPermitNegative() {		
-		ADPermit permit = new ADPermit(null, null);
-		assertFalse(permit.isValidPermit());
-		
-		permit = new ADPermit(semaphore, null);
-		assertFalse(permit.isValidPermit());
-	}
-
-	@Test
-	public void testBypassSemaphoreAttempt() {
-		String guuid = UUID.randomUUID().toString();
-		
-		ADPermit permit = new ADPermit(semaphore, guuid);
-		assertFalse(permit.isValidPermit());
-		
-		permit = new ADPermit(null, guuid);
-		assertFalse(permit.isValidPermit());
-	}
-
+	
 	@Test
 	public void testRelease() {
 		ADPermit permit = semaphore.acquireWithPermit();
 		assertEquals(semaphore.availablePermits(), 2);
-		assertTrue(permit.isValidPermit());
 		permit.release();
 		assertEquals(semaphore.availablePermits(), 3);
-		assertFalse(permit.isValidPermit());
+		
+		// Attempt an extra release
+		permit.release();
+		assertEquals(semaphore.availablePermits(), 3);
 	}
 }

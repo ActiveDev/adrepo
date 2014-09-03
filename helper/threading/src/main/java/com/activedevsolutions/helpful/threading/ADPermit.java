@@ -28,27 +28,31 @@ package com.activedevsolutions.helpful.threading;
  */
 public final class ADPermit {
 	private transient ADSemaphore semaphore;
-	private transient final String guuid;
+	private String guuid;
 	
 	/**
 	 * Constructor to set the semaphore associated with this permit.
 	 * 
 	 * @param associatedSemaphore is the associated semaphore to the permit
-	 * @param identifier represents a value that matches between the permit and semaphore
+	 * @param identifier of the associatedSemaphore to ensure it was the source
 	 */
 	public ADPermit(ADSemaphore associatedSemaphore, String identifier) {
 		semaphore = associatedSemaphore;
 		guuid = identifier;
+		
+		// Make sure the semaphore is valid and that the identifier matches up
+		if (semaphore == null || !semaphore.authenticate(identifier)) {
+			throw new IllegalArgumentException("Identifier does not match the associated semaphore for this permit.");
+		} // end if
 	}
 
 	/**
-	 * Determines if the permit is valid by ensuring that the
-	 * associated semaphore exists.
+	 * Scoped to the package so that only the ADSemaphore and ADPermit can call it.
 	 * 
-	 * @return boolean indicating if the permit is valid.
+	 * @return String representing the identifier of the associated semaphore
 	 */
-	public boolean isValidPermit() {
-		return (semaphore !=null && semaphore.authenticate(guuid));
+	String getGUUID() {
+		return guuid;
 	}
 
 	/**
@@ -57,9 +61,10 @@ public final class ADPermit {
 	 * and 2) helps my paranoia with possible circular references.
 	 */
 	public void release() {
-		if (isValidPermit()) { 
+		if (semaphore != null) { 
 			semaphore.release();
 			semaphore = null;
+			guuid = null;
 		} // end if
 	}
 }

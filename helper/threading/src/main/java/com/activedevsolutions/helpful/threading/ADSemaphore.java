@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  * @author techguy
  *
  */
-public class ADSemaphore extends Semaphore {
+public final class ADSemaphore extends Semaphore {
 	private static final long serialVersionUID = 2918908916899792714L;
 	private static final transient Logger logger = Logger.getLogger(ADSemaphore.class);
 	
@@ -46,7 +46,7 @@ public class ADSemaphore extends Semaphore {
 	public ADSemaphore(int permits, boolean fair) {
 		super(permits, fair);
 	}
-
+	
 	/**
 	 * acquireWithPermit acts just like the acquire method only
 	 * it returns a concrete representation of the permit acquired.
@@ -76,11 +76,19 @@ public class ADSemaphore extends Semaphore {
 	}
 	
 	/**
+	 * Determines if the permit is valid by authenticating it.
+	 * 
+	 * @return boolean indicating if the permit is valid.
+	 */
+	public boolean isValidPermit(ADPermit permit) {
+		return (permit != null && authenticate(permit.getGUUID()));
+	}
+
+	/**
 	 * Determines if the value passed in matches with the guuid
 	 * associated with this semaphore.
 	 * 
 	 * @param value is the string to match up to
-	 * 
 	 * @return boolean indicating if there was a match
 	 */
 	public boolean authenticate(String value) {
