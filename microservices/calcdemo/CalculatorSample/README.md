@@ -1,7 +1,7 @@
 # Calculator Sample
 Sample application that demonstrates a very basic microservice using Spring.
 
-Deploy project to a Tomcat server.
+Deploy project to a Tomcat server or run mvn spring-boot:run. NOTE: If running with spring-boot then remove the calcdemo web context from your url calls.
 
 Sample calls from a browser:
 ## Positive Scenarios
