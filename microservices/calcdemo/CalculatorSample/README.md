@@ -1,12 +1,12 @@
-Calculator Sample
-=================
+# Calculator Sample
+Sample application that demonstrates a very basic microservice using Spring.
 
 Deploy project to a Tomcat server.
 
 Sample calls from a browser:
-# Positive Scenarios
+## Positive Scenarios
 * http://localhost:8080/calcdemo/add?number_one=999999999&number_two=9999999
 * http://localhost:8080/calcdemo/subtract?number_one=999999999&number_two=9999999
 
-# Negative Scenario
+## Negative Scenario
 * http://localhost:8080/calcdemo/add?number_one=999999999&number_two=9999999.1
