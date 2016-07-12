@@ -3,9 +3,9 @@ adrepo
 
 For general projects and samples.
 
-All projects within this repository were created with the following:
+Starting to migrate projects over to:
 
-* Eclipse Luna
-* Java 1.7
-* Maven 3.2.2
+* Spring Tool Suite (STS)
+* Java 1.8
+* Maven 3.3.3
 
