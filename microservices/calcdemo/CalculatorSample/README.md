@@ -9,4 +9,5 @@ Sample calls from a browser:
 * http://localhost:8080/calcdemo/subtract?number_one=999999999&number_two=9999999
 
 ## Negative Scenario
+* http://localhost:8080/calcdemo/error?number_one=29&number_two=3
 * http://localhost:8080/calcdemo/add?number_one=999999999&number_two=9999999.1

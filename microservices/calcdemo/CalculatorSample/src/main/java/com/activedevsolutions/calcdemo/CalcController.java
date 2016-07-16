@@ -61,11 +61,31 @@ public class CalcController {
 	}
 
 	/**
-	 * Exception handler that will handle anything that derives from the
-	 * Exception class.
+	 * Very very very basic subtraction method.
 	 * 
-	 * @param e
-	 *            is the Exception object containing the exception thrown
+	 * @param numberOne
+	 *            is the first value involved in the subtraction
+	 * @param numberTwo
+	 *            is used to subtract from the first value
+	 * @return CalcResult holding the results of the subtraction
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/error", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	public CalcResult error(@RequestParam(value = "number_one") int numberOne,
+			@RequestParam(value = "number_two") int numberTwo) throws Exception {
+		int result = numberOne - numberTwo;
+		CalcResult calcResult = new CalcResult();
+		calcResult.setResult(result);
+
+		throw new Exception("You requested an exception.");
+	}
+	
+	/**
+	 * Exception handler that will handle anything that derives from the
+	 * Exception class. It will return a HTTP 400 for all exceptions
+	 * 
+	 * @param e is the Exception object containing the exception thrown
 	 * @return CalcError containing the exception message
 	 */
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
