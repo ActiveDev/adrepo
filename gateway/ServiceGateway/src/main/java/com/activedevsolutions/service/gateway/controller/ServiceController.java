@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
 import com.activedevsolutions.service.gateway.config.ProxyErrorHandler;
+import com.activedevsolutions.service.gateway.service.ServiceRegistry;
 
 /**
  * REST Controller that provides the ability to act as a REST gateway
@@ -79,8 +80,8 @@ public class ServiceController {
 		// Get the part of the path marked as the wildcard
 		final String restOfPath = getWildcardPath(request);
 		
-		// TODO Get from a service registry
-		final String servicePath = "http://localhost:8080/calcdemo/";
+		// Use the identifier to look up the service
+		final String servicePath = ServiceRegistry.getService(id);
 		
 		// Create the URI based on the microservice's path, the rest of the path passed
 		// into the proxy and any query strings.
