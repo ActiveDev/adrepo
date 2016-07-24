@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.activedevsolutions.services.stock.model.ResourceNotFoundException;
 import com.activedevsolutions.services.stock.model.RestError;
 import com.activedevsolutions.services.stock.model.Stock;
 
@@ -88,7 +89,7 @@ public class StockController {
 	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.PATCH, produces = "application/json")
 	@ResponseBody
 	public Stock update(HttpServletResponse response, @PathVariable("id") String id, 
-			@RequestParam(value = "price") String price) {
+			@RequestParam(value = "price") String price) throws ResourceNotFoundException {
  		
 		Stock stock = null;
 		
@@ -98,7 +99,8 @@ public class StockController {
 			stock.setPrice(price);
 		}
 		else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotFoundException();
+			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
 		
 		return stock;
@@ -131,14 +133,15 @@ public class StockController {
 	 */
 	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
-	public Stock getItem(HttpServletResponse response, @PathVariable("id") String id) {
+	public Stock getItem(HttpServletResponse response, @PathVariable("id") String id) throws ResourceNotFoundException {
 		Stock stock = null;
 		
 		if (stocks.containsKey(id)) {
 			stock = stocks.get(id);
 		}
 		else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotFoundException();
+			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
 		
 		return stock;
@@ -153,14 +156,31 @@ public class StockController {
 	 */
 	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.DELETE, produces = "application/json")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void deleteItem(HttpServletResponse response, @PathVariable("id") String id) {		
+	public void deleteItem(HttpServletResponse response, @PathVariable("id") String id) throws ResourceNotFoundException {		
 		// Demo purposes so there is no thread safety here
 		if (stocks.containsKey(id)) {
 			stocks.remove(id);
 		}
 		else {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotFoundException();
+			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
+	}
+	
+	/**
+	 * Exception handler that will handle anything that derives from the
+	 * ResourceNotFoundException class. It will return a HTTP 404.
+	 * 
+	 * @param e is the Exception object containing the exception thrown
+	 * @return RestError containing the exception message
+	 */
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ExceptionHandler(value = ResourceNotFoundException.class)
+	public RestError handleNotFoundException(ResourceNotFoundException e) {
+		final RestError restError = new RestError();
+		restError.setMessage(e.getMessage());
+
+		return restError;
 	}
 	
 	/**
@@ -168,14 +188,14 @@ public class StockController {
 	 * Exception class. It will return a HTTP 400 for all exceptions
 	 * 
 	 * @param e is the Exception object containing the exception thrown
-	 * @return CalcError containing the exception message
+	 * @return RestError containing the exception message
 	 */
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(value = Exception.class)
 	public RestError handleBaseException(Exception e) {
-		final RestError calcError = new RestError();
-		calcError.setMessage(e.getMessage());
+		final RestError restError = new RestError();
+		restError.setMessage(e.getMessage());
 
-		return calcError;
+		return restError;
 	}
 }
