@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +55,9 @@ public class ServiceController {
 	 * uses the rest of the url to pass along to the microservice. It also passes essential
 	 * headers, the body, and any query strings.
 	 * 
+	 * NOTE: PUT, PATCH, and DELETE are currently not supported as they handle parameters differently
+	 * and I didn't want to clutter up the sample code with if conditions.
+	 * 
 	 * @param method is the http method that the calling application used
 	 * @param request is the servlet request
 	 * @param response is the servlet response
@@ -65,7 +69,7 @@ public class ServiceController {
 	 * @throws URIException is thrown when a service has an invalid uri
 	 * @return ResponseEntity<String> holding the response received from the microservice
 	 */
-	@RequestMapping(value = "/proxy/{id}/**")
+	@RequestMapping(value = "/proxy/{id}/**", method = {RequestMethod.POST, RequestMethod.GET})
 	@ResponseBody
 	public ResponseEntity<String> proxyCall(final HttpMethod method, final HttpServletRequest request, final HttpServletResponse response, 
 			@PathVariable final String id, 
@@ -74,8 +78,8 @@ public class ServiceController {
 			@RequestHeader(value = "Content-Type", defaultValue = MediaType.APPLICATION_FORM_URLENCODED_VALUE) String contentType) 
 					throws URISyntaxException {
 		
-		// Get the query string
-		final String queryString = request.getQueryString();
+		// Get the query string and prefix with ? if a query string exists
+		final String queryString = (request.getQueryString() == null ? "" : "?" + request.getQueryString());
 		
 		// Get the part of the path marked as the wildcard
 		final String restOfPath = getWildcardPath(request);
@@ -85,12 +89,12 @@ public class ServiceController {
 		
 		// Create the URI based on the microservice's path, the rest of the path passed
 		// into the proxy and any query strings.
-		URI uri = new URI(servicePath + restOfPath + "?" + queryString);
+		URI uri = new URI(servicePath + restOfPath + queryString);
 		
 		// Create the restClient that will call the microservice
 		final RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new ProxyErrorHandler());
-		
+				
 		// Pass the accepts and content-type headers along to the microservice
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.valueOf(accepts)));

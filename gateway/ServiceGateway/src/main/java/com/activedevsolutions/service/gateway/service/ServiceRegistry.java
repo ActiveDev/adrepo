@@ -30,6 +30,6 @@ public final class ServiceRegistry {
 	 */
 	public static String getService(String serviceId) {
 		// TODO Implement a service registry
-		return "http://localhost:8080/calcdemo/";
+		return "http://localhost:8080/stock/";
 	}
 }
