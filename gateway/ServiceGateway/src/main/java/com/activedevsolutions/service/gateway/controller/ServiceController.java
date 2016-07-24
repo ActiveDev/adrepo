@@ -18,6 +18,9 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,6 +53,8 @@ import com.activedevsolutions.service.gateway.service.ServiceRegistry;
 @RestController
 @ControllerAdvice
 public class ServiceController {
+	private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
+	
 	/**
 	 * Makes a call to a microservice by looking up the service id being passed. It then
 	 * uses the rest of the url to pass along to the microservice. It also passes essential
@@ -77,6 +82,7 @@ public class ServiceController {
 			@RequestHeader(value = "Accepts", defaultValue = MediaType.APPLICATION_JSON_VALUE) String accepts,
 			@RequestHeader(value = "Content-Type", defaultValue = MediaType.APPLICATION_FORM_URLENCODED_VALUE) String contentType) 
 					throws URISyntaxException {
+		logger.info("[START] Proxy call for " + id);
 		
 		// Get the query string and prefix with ? if a query string exists
 		final String queryString = (request.getQueryString() == null ? "" : "?" + request.getQueryString());
@@ -107,6 +113,8 @@ public class ServiceController {
 		final ResponseEntity<String> responseEntity = restTemplate.exchange(uri, method, httpEntity, String.class);
 		
 		// TODO Add the ability to apply response filters
+		
+		logger.info("[END] Proxy call for " + id);
 		
 		// Return the response from the microservice
 	    return ResponseEntity.status(responseEntity.getStatusCode())
@@ -140,6 +148,8 @@ public class ServiceController {
 	@ResponseStatus(HttpStatus.BAD_GATEWAY)
 	@ExceptionHandler(value = Exception.class)
 	public ProxyError handleBaseException(Exception e) {
+		logger.error("An error occured during the proxy call.", e);
+		
 		ProxyError error = new ProxyError();
 		error.setMessage(e.getMessage());
 
