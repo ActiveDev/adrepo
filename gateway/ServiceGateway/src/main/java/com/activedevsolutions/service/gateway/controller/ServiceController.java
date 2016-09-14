@@ -118,7 +118,8 @@ public class ServiceController {
 		
 		// Return the response from the microservice
 	    return ResponseEntity.status(responseEntity.getStatusCode())
-				.contentType(responseEntity.getHeaders().getContentType())
+	    		.headers(responseEntity.getHeaders())
+				//.contentType(responseEntity.getHeaders().getContentType())
 				.body(responseEntity.getBody());
 	}
 	
