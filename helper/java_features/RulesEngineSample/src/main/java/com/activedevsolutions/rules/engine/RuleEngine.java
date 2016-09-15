@@ -54,8 +54,9 @@ public class RuleEngine<T> {
 	 */
 	public Map<String, TestResult> fireAllRules(T businessObject) {
 		// This is just a demo, but there is lots of functionality that
-		// could be added here including a flag to indicate if it should stop
-		// fire rules at the first failure or maybe set a threshold of failure.
+		// could be added here including a flag to indicate if processing
+		// should stop after the first failure. Another option would be to
+		// set some kind of failure threshold.
 		Map<String, TestResult> results = new HashMap<>();
 		TestResult testResult;
 		
