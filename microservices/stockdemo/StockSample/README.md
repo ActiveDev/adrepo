@@ -5,7 +5,7 @@ Sample application that demonstrates some common REST conventions including:
 * Common Http Status codes
 * Exception handling
 
-Deploy project to a Tomcat server or run mvn spring-boot:run. NOTE: If running with spring-boot then remove "stock" from your url calls.
+Deploy project to a Tomcat server or run mvn spring-boot:run. NOTE: If running with spring-boot then remove "stock" from your url calls. For example: http://localhost:8080/v1.0/stocks
 
 Curl commands:
 ## Add
