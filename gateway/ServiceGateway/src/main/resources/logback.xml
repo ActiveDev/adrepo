@@ -7,8 +7,8 @@
     </encoder>
   </appender>
 
-  <!-- Setting the logging level to WARN for code in net.javabeat.service -->
-  <logger name="com.activedevsolutions" level="WARN" />
+  <!-- Setting the logging level to DEBUG for code in com.activedevsolutions -->
+  <logger name="com.activedevsolutions" level="DEBUG" />
 
   <!-- Setting the root level of logging to INFO -->
   <root level="info">

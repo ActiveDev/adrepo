@@ -15,19 +15,17 @@ package com.activedevsolutions.service.gateway.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,12 +33,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerMapping;
-import com.activedevsolutions.service.gateway.config.ProxyErrorHandler;
 import com.activedevsolutions.service.gateway.service.ServiceRegistry;
 
 /**
@@ -68,24 +65,29 @@ public class ServiceController {
 	 * @param response is the servlet response
 	 * @param id is the path variable that was passed in by the url
 	 * @param body is the body passed in by the calling application. This is optional.
+	 * @param formData is any form data passed in by the calling application. This is optional.
 	 * @param accepts is the format to accept the response in.
 	 * @param contentType is the format that the request is in.
 	 * 
 	 * @throws URIException is thrown when a service has an invalid uri
 	 * @return ResponseEntity<String> holding the response received from the microservice
 	 */
-	@RequestMapping(value = "/proxy/{id}/**", method = {RequestMethod.POST, RequestMethod.GET})
+	@RequestMapping(value = "/proxy/{id}/**", 
+			method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
 	@ResponseBody
-	public ResponseEntity<String> proxyCall(final HttpMethod method, final HttpServletRequest request, final HttpServletResponse response, 
+	public ResponseEntity<String> proxyCall(final HttpMethod method, 
+			final HttpServletRequest request, 
+			final HttpServletResponse response, 
 			@PathVariable final String id, 
 			@RequestBody(required = false) String body,
+			@RequestParam(required = false) MultiValueMap<String, String> formData,
 			@RequestHeader(value = "Accepts", defaultValue = MediaType.APPLICATION_JSON_VALUE) String accepts,
 			@RequestHeader(value = "Content-Type", defaultValue = MediaType.APPLICATION_FORM_URLENCODED_VALUE) String contentType) 
-					throws URISyntaxException {
+			throws URISyntaxException {
 		logger.info("[START] Proxy call for " + id);
 		
 		// Get the query string and prefix with ? if a query string exists
-		final String queryString = (request.getQueryString() == null ? "" : "?" + request.getQueryString());
+		final String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
 		
 		// Get the part of the path marked as the wildcard
 		final String restOfPath = getWildcardPath(request);
@@ -97,30 +99,23 @@ public class ServiceController {
 		// into the proxy and any query strings.
 		URI uri = new URI(servicePath + restOfPath + queryString);
 		
-		// Create the restClient that will call the microservice
-		final RestTemplate restTemplate = new RestTemplate();
-		restTemplate.setErrorHandler(new ProxyErrorHandler());
-				
-		// Pass the accepts and content-type headers along to the microservice
-		final HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.valueOf(accepts)));
-		headers.setContentType(MediaType.valueOf(contentType));
-
 		// TODO Add the ability to apply request filters 
 		
-		// Make the call to the microservice
-		final HttpEntity<?> httpEntity = new HttpEntity<Object>(body, headers);
-		final ResponseEntity<String> responseEntity = restTemplate.exchange(uri, method, httpEntity, String.class);
+		ServiceCommand command = new ServiceCommand();
+		ResponseEntity<String> responseEntity = command.runService(accepts, contentType, body, uri, method, formData);
 		
+		// Merge headers from response of microservice with those of the proxy
+		// TODO this should really be one of those response filters
+		HttpHeaders microHeaders = responseEntity.getHeaders();
+		for (String key : microHeaders.keySet()) {
+			String value = microHeaders.get(key).toString();
+			response.addHeader(key, value); 
+		}
+
 		// TODO Add the ability to apply response filters
 		
-		logger.info("[END] Proxy call for " + id);
-		
 		// Return the response from the microservice
-	    return ResponseEntity.status(responseEntity.getStatusCode())
-	    		.headers(responseEntity.getHeaders())
-				//.contentType(responseEntity.getHeaders().getContentType())
-				.body(responseEntity.getBody());
+		return new ResponseEntity<>(responseEntity.getBody(), responseEntity.getStatusCode());
 	}
 	
 	/**
@@ -134,9 +129,8 @@ public class ServiceController {
 		final String path = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 		final String bestMatchPattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
 		final AntPathMatcher apm = new AntPathMatcher();
-		final String finalPath = apm.extractPathWithinPattern(bestMatchPattern, path);
 		
-		return finalPath;
+		return apm.extractPathWithinPattern(bestMatchPattern, path);
 	}
 	
 	/**

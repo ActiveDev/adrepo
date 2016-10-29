@@ -1,0 +1,7 @@
+server:
+  contextPath: /gateway
+  port: 8080
+
+spring:
+  application:
+    name: service-gateway

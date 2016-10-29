@@ -15,9 +15,11 @@ package com.activedevsolutions.services.stock;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpHeaders;
@@ -54,7 +56,7 @@ import com.activedevsolutions.services.stock.model.Stock;
 @RequestMapping("/v1.0")
 public class StockController {
 	// Our in-memory list keyed by the id (
-	private Map<String, Stock> stocks = new HashMap<>();
+	private Map<String, Stock> stocks = new ConcurrentHashMap<>();
 	
 	/**
 	 * REST Conventions use a POST for adding an object.
@@ -91,20 +93,14 @@ public class StockController {
 		stock.setId(id);
 		
 		// Demo purposes so there is no thread safety here
-		stocks.put(id, stock);
+		stocks.putIfAbsent(id, stock);
 		
 		// Set the location for the new object
 		HttpHeaders headers = new HttpHeaders();
-		URI locationUri = 
-				ucb.path("/v1.0/stocks/")
-				.path(id)
-				.build()
-				.toUri();
+		URI locationUri = ucb.path("/v1.0/stocks/").path(id).build().toUri();
 		headers.setLocation(locationUri);
-		//headers.setContentLength(110);
-		ResponseEntity<Stock> responseEntity = new ResponseEntity<>(stock, headers, HttpStatus.CREATED);
 		
-		return responseEntity;
+		return new ResponseEntity<>(stock, headers, HttpStatus.CREATED);
 	}
 
 	/**
@@ -116,12 +112,13 @@ public class StockController {
 	 * 
 	 * @return Stock object containing the newly created item
 	 */
-	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.PATCH, produces = "application/json")
+	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.PATCH, 
+			produces = "application/json")
 	@ResponseBody
-	public Stock update(HttpServletResponse response, @PathVariable("id") String id, 
-			@RequestParam(value = "price") String price) throws ResourceNotFoundException {
+	public Stock update(HttpServletRequest request, HttpServletResponse response, @PathVariable("id") String id, 
+			@RequestParam(value = "price", required = false) String price) throws ResourceNotFoundException {
  		
-		Stock stock = null;
+		Stock stock;
 		
 		// Demo purposes so there is no thread safety here
 		if (stocks.containsKey(id)) {
@@ -130,7 +127,6 @@ public class StockController {
 		}
 		else {
 			throw new ResourceNotFoundException();
-			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
 		
 		return stock;
@@ -164,14 +160,13 @@ public class StockController {
 	@RequestMapping(value = "/stocks/{id}", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	public Stock getItem(HttpServletResponse response, @PathVariable("id") String id) throws ResourceNotFoundException {
-		Stock stock = null;
+		Stock stock;
 		
 		if (stocks.containsKey(id)) {
 			stock = stocks.get(id);
 		}
 		else {
 			throw new ResourceNotFoundException();
-			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
 		
 		return stock;
@@ -193,7 +188,6 @@ public class StockController {
 		}
 		else {
 			throw new ResourceNotFoundException();
-			//response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} // end if
 	}
 	
