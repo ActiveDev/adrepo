@@ -14,10 +14,10 @@ curl -v -H "Content-Type:application/x-www-form-urlencoded" -X POST -d 'symbol=a
 curl -v -H "Content-Type:application/x-www-form-urlencoded" -X GET http://localhost:8080/gateway/proxy/stock/v1.0/stocks
 
 ## Get Item
-curl -v -H "Content-Type:application/x-www-form-urlencoded" -X GET http://localhost:8080/gateway/proxy/stock/v1.0/stocks/<use_an_id_from_the_list_call>
+curl -v -H "Content-Type:application/x-www-form-urlencoded" -X GET http://localhost:8080/gateway/proxy/stock/v1.0/stocks/{use_an_id_from_the_list_call}
 
 ## Partial Update Item
-curl -v -H "Content-Type:application/x-www-form-urlencoded" -X PATCH -d 'price=222.11' http://localhost:8080/gateway/proxy/stock/v1.0/stocks/<use_an_id_from_the_list_call>
+curl -v -H "Content-Type:application/x-www-form-urlencoded" -X PATCH -d 'price=222.11' http://localhost:8080/gateway/proxy/stock/v1.0/stocks/{use_an_id_from_the_list_call}
 
 ## Delete Item
-curl -v -H "Content-Type:application/x-www-form-urlencoded" -X DELETE http://localhost:8080/gateway/proxy/stock/v1.0/stocks/<use_an_id_from_the_list_call>
+curl -v -H "Content-Type:application/x-www-form-urlencoded" -X DELETE http://localhost:8080/gateway/proxy/stock/v1.0/stocks/{use_an_id_from_the_list_call}
