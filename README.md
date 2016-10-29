@@ -8,5 +8,8 @@ Project are built using:
 * Java 1.8
 * Maven 3.3.3
 
-##helper - projects under this folder are helper libraries
-##microservices - focuses on microservice architecture and relies heavily on SpringBoot
+##helper
+Projects under this folder are helper libraries
+
+##microservices
+These projects focus on microservice architecture
