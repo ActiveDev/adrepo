@@ -10,8 +10,12 @@ spring:
     name: eureka-monitor-server
 
 eureka:
+  server:
+    enableSelfPreservation: false 
   instance:
     hostname: localhost
+    leaseRenewalIntervalInSeconds: 1
+    leaseExpirationDurationInSeconds: 2    
   client:
     registerWithEureka: false
     fetchRegistry: false

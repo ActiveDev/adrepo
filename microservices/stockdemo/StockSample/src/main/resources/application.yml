@@ -4,7 +4,7 @@ server:
 
 spring:
   application:
-    name: stock-sample-service
+    name: stock
 
 eureka:
   client:

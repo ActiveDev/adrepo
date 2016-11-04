@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
+
+import com.activedevsolutions.service.gateway.service.ServiceCommand;
 import com.activedevsolutions.service.gateway.service.ServiceRegistry;
 
 /**
@@ -51,14 +54,14 @@ import com.activedevsolutions.service.gateway.service.ServiceRegistry;
 @ControllerAdvice
 public class ServiceController {
 	private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
-	
+		
+	@Autowired
+	private ServiceRegistry registry;
+		
 	/**
 	 * Makes a call to a microservice by looking up the service id being passed. It then
 	 * uses the rest of the url to pass along to the microservice. It also passes essential
 	 * headers, the body, and any query strings.
-	 * 
-	 * NOTE: PUT, PATCH, and DELETE are currently not supported as they handle parameters differently
-	 * and I didn't want to clutter up the sample code with if conditions.
 	 * 
 	 * @param method is the http method that the calling application used
 	 * @param request is the servlet request
@@ -71,6 +74,8 @@ public class ServiceController {
 	 * 
 	 * @throws URIException is thrown when a service has an invalid uri
 	 * @return ResponseEntity<String> holding the response received from the microservice
+	 * @throws NoSuchMethodException occurs when a service cannot be found in the registry (usually
+	 * 					due to a bad {id} being passed in by the url
 	 */
 	@RequestMapping(value = "/proxy/{id}/**", 
 			method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
@@ -83,7 +88,7 @@ public class ServiceController {
 			@RequestParam(required = false) MultiValueMap<String, String> formData,
 			@RequestHeader(value = "Accepts", defaultValue = MediaType.APPLICATION_JSON_VALUE) String accepts,
 			@RequestHeader(value = "Content-Type", defaultValue = MediaType.APPLICATION_FORM_URLENCODED_VALUE) String contentType) 
-			throws URISyntaxException {
+			throws URISyntaxException, NoSuchMethodException {
 		logger.info("[START] Proxy call for " + id);
 		
 		// Get the query string and prefix with ? if a query string exists
@@ -93,7 +98,10 @@ public class ServiceController {
 		final String restOfPath = getWildcardPath(request);
 		
 		// Use the identifier to look up the service
-		final String servicePath = ServiceRegistry.getService(id);
+		final String servicePath = registry.getServicePath(id);
+		if (servicePath == null) {
+		    throw new NoSuchMethodException("The service requested cannot be found in the registry.");
+		}
 		
 		// Create the URI based on the microservice's path, the rest of the path passed
 		// into the proxy and any query strings.
@@ -101,8 +109,11 @@ public class ServiceController {
 		
 		// TODO Add the ability to apply request filters 
 		
-		ServiceCommand command = new ServiceCommand();
-		ResponseEntity<String> responseEntity = command.runService(accepts, contentType, body, uri, method, formData);
+		// TODO Look at caching these objects
+		String commandId = id + "-" + method.toString();
+		ServiceCommand command = new ServiceCommand(id, commandId);
+		command.setup(accepts, contentType, uri, method, body, formData);
+		ResponseEntity<String> responseEntity = command.execute();
 		
 		// Merge headers from response of microservice with those of the proxy
 		// TODO this should really be one of those response filters
@@ -131,6 +142,24 @@ public class ServiceController {
 		final AntPathMatcher apm = new AntPathMatcher();
 		
 		return apm.extractPathWithinPattern(bestMatchPattern, path);
+	}
+	
+	/**
+	 * Exception handler that will handle anything that derives from the
+	 * NoSuchMethodException class.
+	 * 
+	 * @param e is the NoSuchMethodException object containing the exception thrown
+	 * @return ProxyError containing the exception message
+	 */
+	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+	@ExceptionHandler(value = NoSuchMethodException.class)
+	public ProxyError handleBadServiceId(NoSuchMethodException e) {
+		logger.error("An error occured trying to find the service in the registry.", e);
+		
+		ProxyError error = new ProxyError();
+		error.setMessage(e.getMessage());
+
+		return error;
 	}
 	
 	/**

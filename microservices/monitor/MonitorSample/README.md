@@ -6,3 +6,9 @@ mvn spring-boot:run
 
 To see the Eureka dashboard, open a browser and go to:
 http://localhost:8761/
+
+To view Hystrix dashboard, open a browser and go to:
+http://localhost:8761/hystrix
+
+To monitor a stream, start the Service Gateway and go to:
+http://localhost:8080/gateway/hystrix.stream

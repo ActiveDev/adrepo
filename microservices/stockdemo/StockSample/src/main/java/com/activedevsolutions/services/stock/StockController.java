@@ -192,6 +192,23 @@ public class StockController {
 	}
 	
 	/**
+	 * Used to simulate a timeout for playing with Hystrix.
+	 * 
+	 * @return Stock is just a dummy object
+	 * @throws InterruptedException when the thread sleep fails
+	 */
+	@RequestMapping(value = "/stocks/timeout", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	public Stock simulateTimeout() throws InterruptedException {
+		Stock stock = new Stock();
+		stock.setCompany("Should have timed out");
+		
+		Thread.sleep(10000);
+		
+		return stock;
+	}
+	
+	/**
 	 * Exception handler that will handle anything that derives from the
 	 * ResourceNotFoundException class. It will return a HTTP 404.
 	 * 
