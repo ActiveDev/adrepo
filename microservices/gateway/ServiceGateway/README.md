@@ -1,4 +1,6 @@
-# REST Gateway Sample
+# REST Gateway Sample - Deprecated
+This project is now deprecated and is being replaced with the new API Gateway project. The API Gateway project uses Zuul Proxy which replaces a lot of this functionality without the need for custom code. Having said that, this project is a good sample to show how RestTemplates can be used for generic purposes.
+
 Sample application that demonstrates how to proxy requests to microservices and then return their results. This is just a sample to be used as a training aid.
 
 To run the demo, you will need the Stock Sample and the Monitor Sample projects running. The url for the StockSample is retrieved from the Eureka server which is part of the Monitor Sample.

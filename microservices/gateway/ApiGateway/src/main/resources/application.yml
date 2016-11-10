@@ -1,0 +1,22 @@
+server:
+  contextPath: /gateway
+  port: 8080
+
+spring:
+  application:
+    name: apigateway
+     
+zuul:
+  routes:
+    stock:
+      path: /stock/**
+      serviceId: stock
+      stripPrefix: false
+
+stock:
+  ribbon:
+    eureka:
+      enabled: false
+    listOfServers: localhost:9000
+    ServerListRefreshInterval: 15000
+    
