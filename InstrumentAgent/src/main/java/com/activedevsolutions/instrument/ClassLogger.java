@@ -25,6 +25,7 @@ public class ClassLogger implements ClassFileTransformer {
 		byte[] result = null;
 		String whiteList = System.getProperty(PROP_WHITE_LIST);
 		String blackList = System.getProperty(PROP_BLACK_LIST);
+		String importPackage = System.getProperty(PROP_IMPORT_PKG);
 		
 		try {			
 			// Blacklist (Not really a list yet)
@@ -35,7 +36,7 @@ public class ClassLogger implements ClassFileTransformer {
 			// Whitelist (Not really a list yet)
 			if (className.startsWith(whiteList)) {
 				ClassPool cp = ClassPool.getDefault();
-				cp.importPackage(PROP_IMPORT_PKG);
+				cp.importPackage(importPackage);
 				
 				CtClass ct = cp.makeClass(new ByteArrayInputStream(classfileBuffer));
 	
