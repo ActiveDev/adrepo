@@ -1,7 +1,7 @@
 # Java Agent Sample
 Sample application that demonstrates a very basic java agent.
 
-## NOTE: This is just for a discussion and should not be used in production
+## NOTE: This is just for a discussion and should not be used in production. This is NOT thread-safe.
 
 ## Run
  Add these arguments to the java application you want the agent to run against.
