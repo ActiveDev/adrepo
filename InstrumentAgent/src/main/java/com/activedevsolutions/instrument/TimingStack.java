@@ -24,6 +24,8 @@ public enum TimingStack {
 	 * @param name is the name of the event
 	 */
 	public void push(String name) {
+		// NOT THREAD-SAFE
+		//TODO This needs to be moved off of this singleton
 		String threadName = Thread.currentThread().getName();
 		Timings timings = timingsCache.get(threadName);
 		String prefix = "";
@@ -43,6 +45,8 @@ public enum TimingStack {
 	 * Ends the timing event.
 	 */
 	public void pop() {
+		// NOT THREAD-SAFE
+		//TODO This needs to be moved off of this singleton
 		String threadName = Thread.currentThread().getName();
 		Timings timings = timingsCache.get(threadName);
 
