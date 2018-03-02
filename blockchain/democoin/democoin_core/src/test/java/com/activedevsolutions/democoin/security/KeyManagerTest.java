@@ -50,6 +50,8 @@ public class KeyManagerTest {
 			keyManager = KeyManager.createKeyManager();
 			String generatedKey = keyManager.getPrivateKeyString();
 			assertTrue(generatedKey!= null);
+			
+			KeyManager.getPrivateKeyFromString(generatedKey);
 		} 
 		catch (GeneralSecurityException e) {
 			e.printStackTrace();
@@ -65,6 +67,8 @@ public class KeyManagerTest {
 			keyManager = KeyManager.createKeyManager();
 			String generatedKey = keyManager.getPublicKeyString();
 			assertTrue(generatedKey!= null);
+			
+			KeyManager.getPublicKeyFromString(generatedKey);
 		} 
 		catch (GeneralSecurityException e) {
 			e.printStackTrace();

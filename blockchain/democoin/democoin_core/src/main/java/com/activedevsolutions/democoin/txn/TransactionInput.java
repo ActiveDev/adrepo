@@ -1,6 +1,10 @@
 package com.activedevsolutions.democoin.txn;
 
-import com.activedevsolutions.democoin.BlockChain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class will be used to reference TransactionOutputs that have not yet been spent. 
@@ -11,6 +15,8 @@ import com.activedevsolutions.democoin.BlockChain;
  *
  */
 public class TransactionInput {
+	private static Logger logger = LoggerFactory.getLogger(TransactionInput.class);
+	
 	// Reference to TransactionOutputs -> transactionId
 	private final String transactionOutputId;
 	
@@ -42,11 +48,15 @@ public class TransactionInput {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(transactionOutputId);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append(UTXO);
+		String result = "";
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			result = objectMapper.writeValueAsString(this);
+		} 
+		catch (JsonProcessingException e) {
+			logger.error("Unable to generate json.", e);
+		} // end try catch
 		
-		return sb.toString();
+		return result;
 	}
 }

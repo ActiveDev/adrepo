@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import com.activedevsolutions.democoin.security.SecurityUtil;
 import com.activedevsolutions.democoin.txn.Transaction;
 import com.activedevsolutions.democoin.txn.TransactionOutput;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Represents a block in the blockchain.
@@ -157,24 +159,15 @@ public class Block {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("\nSTART BLOCK\n");
-		sb.append("previousHash:");
-		sb.append(previousHash);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append("timestamp:");
-		sb.append(timeStamp);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append("nonce:");
-		sb.append(nonce);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append("hash:");
-		sb.append(hash);
-		sb.append(BlockChain.PRINT_NEWLINE);
-		sb.append("Transactions: ");
-		sb.append(transactions);
-		sb.append("\nEND BLOCK");
+		String result = "";
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			result = objectMapper.writeValueAsString(this);
+		} 
+		catch (JsonProcessingException e) {
+			logger.error("Unable to generate json.", e);
+		} // end try catch
 		
-		return sb.toString();
+		return result;
 	}
 }

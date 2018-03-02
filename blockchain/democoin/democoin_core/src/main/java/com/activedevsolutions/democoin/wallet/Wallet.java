@@ -1,7 +1,6 @@
 package com.activedevsolutions.democoin.wallet;
 
 import java.security.GeneralSecurityException;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class Wallet {
 		CurrencyFormat total = new CurrencyFormat(0);
 		for (TransactionOutput UTXO : UTXOCache.INSTANCE.getUTXOs().getValues()) {			
 			// if output belongs to me ( if coins belong to me )
-			if (UTXO.isMine(keyManager.getPublicKey())) {
+			if (UTXO.isMine(keyManager.getPublicKeyString())) {
 				// add it to our list of unspent transactions
 				UTXOs.put(UTXO.getId(), UTXO); 
 				total = total.add(UTXO.getValue());
@@ -80,13 +79,19 @@ public class Wallet {
 	 * @param recipient is the public key of the wallet to send the funds to
 	 * @param value is the amount to send
 	 * @return Transaction containing the details of the transfer
+	 * @throws GeneralSecurityException when the public key is invalid
 	 */
-	public Transaction sendFunds(PublicKey recipient, CurrencyFormat value) {
+	public Transaction sendFunds(String recipient, CurrencyFormat value) throws GeneralSecurityException {
 		if (getBalance().compareTo(value) == -1) {
 			logger.info("#Not Enough funds to send transaction. Transaction Discarded.");
 			return null;
 		}
+
+		String publicKeyString = keyManager.getPublicKeyString();
+		
 		ArrayList<TransactionInput> inputs = new ArrayList<>();
+		Transaction newTransaction = new Transaction(publicKeyString, recipient, value, inputs);
+		newTransaction.generateSignature(keyManager.getPrivateKey());
 
 		CurrencyFormat total = new CurrencyFormat(0);
 		for (Map.Entry<String, TransactionOutput> item : UTXOs.entrySet()) {
@@ -96,9 +101,6 @@ public class Wallet {
 			if (total.compareTo(value) == 1)
 				break;
 		}
-
-		Transaction newTransaction = new Transaction(keyManager.getPublicKey(), recipient, value, inputs);
-		newTransaction.generateSignature(keyManager.getPrivateKey());
 
 		for (TransactionInput input : inputs) {
 			UTXOs.remove(input.getTransactionOutputId());

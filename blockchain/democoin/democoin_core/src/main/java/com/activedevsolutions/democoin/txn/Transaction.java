@@ -1,5 +1,6 @@
 package com.activedevsolutions.democoin.txn;
 
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -10,10 +11,12 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.activedevsolutions.democoin.BlockChain;
 import com.activedevsolutions.democoin.CurrencyFormat;
 import com.activedevsolutions.democoin.UTXOCache;
+import com.activedevsolutions.democoin.security.KeyManager;
 import com.activedevsolutions.democoin.security.SecurityUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Represents a single transaction.
@@ -26,10 +29,10 @@ public class Transaction {
 	private static final CurrencyFormat MIN_TXN = new CurrencyFormat(0.1);
 
 	// Senders address/public key.
-	private final PublicKey sender;
+	private final String sender;
 	
 	// Recipients address/public key.
-	private final PublicKey recipient; 
+	private final String recipient; 
 
 	// Contains the amount we wish to send to the recipient.
 	private final CurrencyFormat value; 
@@ -54,7 +57,7 @@ public class Transaction {
 	 * @param value is the amount to send
 	 * @param inputs are the transaction inputs
 	 */
-	public Transaction(PublicKey from, PublicKey to, CurrencyFormat value, List<TransactionInput> inputs) {
+	public Transaction(String from, String to, CurrencyFormat value, List<TransactionInput> inputs) {
 		this.sender = from;
 		this.recipient = to;
 		this.value = value;
@@ -69,10 +72,10 @@ public class Transaction {
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
 	}
-	public PublicKey getSender() {
+	public String getSender() {
 		return sender;
 	}
-	public PublicKey getRecipient() {
+	public String getRecipient() {
 		return recipient;
 	}
 	public CurrencyFormat getValue() {
@@ -174,8 +177,7 @@ public class Transaction {
 	 * @param privateKey is the key to use for the signature
 	 */
 	public void generateSignature(PrivateKey privateKey) {
-		String data = SecurityUtil.getStringFromKey(sender) + SecurityUtil.getStringFromKey(recipient)
-				+ value.toPlainString();
+		String data = sender + recipient + value.toPlainString();
 		signature = SecurityUtil.applyECDSASig(privateKey, data);
 	}
 
@@ -185,9 +187,19 @@ public class Transaction {
 	 * @return boolean indicating success/failure
 	 */
 	public boolean verifySignature() {
-		String data = SecurityUtil.getStringFromKey(sender) + SecurityUtil.getStringFromKey(recipient)
-				+ value.toPlainString();
-		return SecurityUtil.verifyECDSASig(sender, data, signature);
+		boolean result = false;
+		String data = sender + recipient + value.toPlainString();
+		
+		try {
+			PublicKey publicKey = KeyManager.getPublicKeyFromString(sender);
+			result = SecurityUtil.verifyECDSASig(publicKey, data, signature);
+		} 
+		catch (GeneralSecurityException e) {
+			logger.error("Unable to derive public key.", e);
+			result = false;
+		} // end try catch
+		
+		return result; 
 	}
 
 	/**
@@ -206,8 +218,8 @@ public class Transaction {
 	 */
 	private String getContents() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(SecurityUtil.getStringFromKey(sender));
-		sb.append(SecurityUtil.getStringFromKey(recipient));
+		sb.append(sender);
+		sb.append(recipient);
 		sb.append(value);
 		sb.append(sequence);
 		
@@ -269,24 +281,15 @@ public class Transaction {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-	
-		sb.append(BlockChain.PRINT_NEWLINE);
-		sb.append("Transaction: ");
-		sb.append(BlockChain.PRINT_NEWLINE);
-		sb.append("To: ");
-		sb.append(sender.toString());
-		sb.append("From: ");
-		sb.append(recipient.toString());
-		sb.append("Amount: ");
-		sb.append(value);
-		sb.append(BlockChain.PRINT_NEWLINE);
-		sb.append("Inputs: ");
-		sb.append(inputs);
-		sb.append(BlockChain.PRINT_NEWLINE);
-		sb.append("Outputs: ");
-		sb.append(outputs);
+		String result = "";
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			result = objectMapper.writeValueAsString(this);
+		} 
+		catch (JsonProcessingException e) {
+			logger.error("Unable to generate json.", e);
+		} // end try catch
 		
-		return sb.toString();
+		return result;
 	}
 }

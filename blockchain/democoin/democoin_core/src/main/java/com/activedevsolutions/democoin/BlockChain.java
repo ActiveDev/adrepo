@@ -23,12 +23,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class BlockChain {
 	private static Logger logger = LoggerFactory.getLogger(BlockChain.class);
-	
-	public static final String PRINT_DELIMITER = "|";
-	public static final String PRINT_NEWLINE = "\n";
-	
-	private List<Block> blockList = new ArrayList<>();
 		
+	private List<Block> blockList = new ArrayList<>();
+
 	private String hashTarget;
 	private Block genesisBlock;
 	private Wallet coinbase;
@@ -55,6 +52,7 @@ public final class BlockChain {
 	 * Constructor used when the blockchain has already been established.
 	 */
 	public BlockChain(int difficulty) {
+		//TODO Add UnspentTxns here so that it can be serialized and de-serialized
 		hashTarget = SecurityUtil.getDificultyString(difficulty);
 	}
 
@@ -62,8 +60,23 @@ public final class BlockChain {
 	public String getGenesisBlockHash() {
 		return genesisBlock.getHash();
 	}
+	public List<Block> getBlockList() {
+		return blockList;
+	}
+	public String getHashTarget() {
+		return hashTarget;
+	}
+	public Block getGenesisBlock() {
+		return genesisBlock;
+	}
+	public Wallet getCoinbase() {
+		return coinbase;
+	}
 	public Wallet getStartingWallet() {
 		return startingWallet;
+	}	
+	public CurrencyFormat getStartingCoins() {
+		return startingCoins;
 	}
 
 	/**
@@ -80,8 +93,8 @@ public final class BlockChain {
 		} // end if
 				
 		// create genesis transaction, which sends coins to the starting wallet:
-		Transaction genesisTransaction = new Transaction(coinbase.getKeyManager().getPublicKey(), 
-				startingWallet.getKeyManager().getPublicKey(), startingCoins, null);
+		Transaction genesisTransaction = new Transaction(coinbase.getKeyManager().getPublicKeyString(), 
+				startingWallet.getKeyManager().getPublicKeyString(), startingCoins, new ArrayList<>());
 
 		// manually sign the genesis txn
 		genesisTransaction.generateSignature(coinbase.getKeyManager().getPrivateKey());
@@ -152,27 +165,15 @@ public final class BlockChain {
 		return true;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
-//		StringBuilder sb = new StringBuilder();
-//		sb.append("hashTarget: ");
-//		sb.append(hashTarget);
-//		sb.append(PRINT_DELIMITER);
-//		sb.append("startingCoins: ");
-//		sb.append(startingCoins);
-//		sb.append(PRINT_NEWLINE);
-//		sb.append("coinbase: ");
-//		sb.append(coinbase);
-//		sb.append(PRINT_NEWLINE);
-//		sb.append("startingWallet: ");
-//		sb.append(startingWallet);
-//		sb.append(PRINT_NEWLINE);
-//		sb.append(blockList);	
-//		return sb.toString();
 		String result = "";
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
-			result = objectMapper.writeValueAsString(this);
+			result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
 		} 
 		catch (JsonProcessingException e) {
 			logger.error("Unable to generate json.", e);

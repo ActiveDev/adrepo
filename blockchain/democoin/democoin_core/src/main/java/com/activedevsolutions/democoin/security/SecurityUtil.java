@@ -1,12 +1,10 @@
 package com.activedevsolutions.democoin.security;
 
-import java.security.Key;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -117,16 +115,6 @@ public final class SecurityUtil {
 	 */
 	public static String getDificultyString(int difficulty) {
 		return new String(new char[difficulty]).replace('\0', '0');
-	}
-
-	/**
-	 * Creates a base64 encoded string version of a key.
-	 * 
-	 * @param key is the key to convert
-	 * @return String containing a string representation of the key with base64 encoding
-	 */
-	public static String getStringFromKey(Key key) {
-		return Base64.getEncoder().encodeToString(key.getEncoded());
 	}
 
 	/**

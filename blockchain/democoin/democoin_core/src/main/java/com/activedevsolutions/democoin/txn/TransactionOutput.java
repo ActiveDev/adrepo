@@ -1,10 +1,12 @@
 package com.activedevsolutions.democoin.txn;
 
-import java.security.PublicKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.activedevsolutions.democoin.BlockChain;
 import com.activedevsolutions.democoin.CurrencyFormat;
 import com.activedevsolutions.democoin.security.SecurityUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Transaction outputs will show the final amount sent to each party from the transaction. 
@@ -12,10 +14,12 @@ import com.activedevsolutions.democoin.security.SecurityUtil;
  *
  */
 public class TransactionOutput {
+	private static Logger logger = LoggerFactory.getLogger(TransactionOutput.class);
+	
 	private String id;
 	
 	// also known as the new owner of these coins.
-	private final PublicKey recipient;
+	private final String recipient;
 	
 	// the amount of coins they own
 	private final CurrencyFormat value;
@@ -30,19 +34,18 @@ public class TransactionOutput {
 	 * @param value is the value transferred
 	 * @param parentTransactionId is the originator
 	 */
-	public TransactionOutput(PublicKey reciepient, CurrencyFormat value, String parentTransactionId) {
+	public TransactionOutput(String reciepient, CurrencyFormat value, String parentTransactionId) {
 		this.recipient = reciepient;
 		this.value = value;
 		this.parentTransactionId = parentTransactionId;
-		this.id = SecurityUtil.applySha256(SecurityUtil.getStringFromKey(reciepient) + value.toPlainString() + 
-				parentTransactionId);
+		this.id = SecurityUtil.applySha256(reciepient + value.toPlainString() + parentTransactionId);
 	}
 
 	// Getters and Setters
 	public String getId() {
 		return id;
 	}
-	public PublicKey getRecipient() {
+	public String getRecipient() {
 		return recipient;
 	}
 	public CurrencyFormat getValue() {
@@ -58,8 +61,8 @@ public class TransactionOutput {
 	 * @param publicKey is the public key to look for
 	 * @return boolean indicating if the this is owned by the public key
 	 */
-	public boolean isMine(PublicKey publicKey) {
-		return (publicKey == recipient);
+	public boolean isMine(String publicKey) {
+		return (publicKey.equals(recipient));
 	}
 	
 	/**
@@ -67,15 +70,15 @@ public class TransactionOutput {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(id);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append(recipient);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append(value);
-		sb.append(BlockChain.PRINT_DELIMITER);
-		sb.append(parentTransactionId);
+		String result = "";
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			result = objectMapper.writeValueAsString(this);
+		} 
+		catch (JsonProcessingException e) {
+			logger.error("Unable to generate json.", e);
+		} // end try catch
 		
-		return sb.toString();
+		return result;
 	}
 }

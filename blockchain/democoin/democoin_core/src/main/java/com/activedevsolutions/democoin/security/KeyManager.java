@@ -19,17 +19,21 @@ import java.util.Base64.Encoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * This class handles all functionality relating to public and private keys.
  *
  */
 public class KeyManager {
 	private static Logger logger = LoggerFactory.getLogger(KeyManager.class);
-		
-	private PrivateKey privateKey;
-	private PublicKey publicKey;
 
-	private Encoder encoder = Base64.getEncoder();
+	@JsonIgnore
+	private PrivateKey privateKey;
+	@JsonIgnore
+	private PublicKey publicKey;
+	private String privateKeyString;
+	private String publicKeyString;
 
 	/**
 	 * Setup the security provide just once for the jvm.
@@ -46,9 +50,11 @@ public class KeyManager {
 	 * @param publicKey is the publickey to use
 	 * @param privateKey is the privatekey to use
 	 */
-	private KeyManager(PrivateKey privateKey, PublicKey publicKey) {
+	private KeyManager(PrivateKey privateKey, PublicKey publicKey, String privateKeyString, String publicKeyString) {
 		this.privateKey = privateKey;
 		this.publicKey = publicKey;
+		this.privateKeyString = privateKeyString;
+		this.publicKeyString = publicKeyString;
 	}
 	
 	// Getters and Setters
@@ -61,15 +67,33 @@ public class KeyManager {
 	}
 
 	/**
-	 * Saves the generated private key to a string. 
+	 * Gets the string representation of the key that was generated during
+	 * the creation of this key manager.
+	 */
+	public String getPrivateKeyString() {
+		return privateKeyString;
+	}
+
+	/**
+	 * Gets the string representation of the key that was generated during
+	 * the creation of this key manager.
+	 */
+	public String getPublicKeyString() {
+		return publicKeyString;
+	}
+
+	/**
+	 * Generate private key to a string. 
 	 * This is used for marshalling and unmarshalling of keys.
 	 * 
 	 * @throws GeneralSecurityException when any exception occurs dealing with the key
 	 */
-	public String getPrivateKeyString() throws GeneralSecurityException {
+	public static String generatePrivateKeyString(PrivateKey privateKey) throws GeneralSecurityException {
 		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
 		PKCS8EncodedKeySpec spec = fact.getKeySpec(privateKey, PKCS8EncodedKeySpec.class);
 		byte[] packed = spec.getEncoded();
+		
+		Encoder encoder = Base64.getEncoder();
 		String key64 = encoder.encodeToString(packed);
 
 		Arrays.fill(packed, (byte) 0);
@@ -78,18 +102,19 @@ public class KeyManager {
 	}
 
 	/**
-	 * Saves the generated public key to a string. 
+	 * Generate public key to a string. 
 	 * This is used for marshalling and unmarshalling of keys.
 	 * 
 	 * @throws GeneralSecurityException when any exception occurs dealing with the key
 	 */
-	public String getPublicKeyString() throws GeneralSecurityException {
+	public static String generatePublicKeyString(PublicKey publicKey) throws GeneralSecurityException {
 		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
 		X509EncodedKeySpec spec = fact.getKeySpec(publicKey, X509EncodedKeySpec.class);
 		
+		Encoder encoder = Base64.getEncoder();
 		return encoder.encodeToString(spec.getEncoded());
 	}
-
+	
 	/**
 	 * Generates a key pair based on the algo and provider.
 	 */
@@ -103,8 +128,12 @@ public class KeyManager {
 		KeyPair keyPair = keyGen.generateKeyPair();
 		logger.info("Keypair generated.");
 		
+		// Get string representations of the keys as well
+		String privateValue = KeyManager.generatePrivateKeyString(keyPair.getPrivate());
+		String publicValue = KeyManager.generatePublicKeyString(keyPair.getPublic());
+		
 		// Set the public and private keys from the keyPair
-		return new KeyManager(keyPair.getPrivate(), keyPair.getPublic());
+		return new KeyManager(keyPair.getPrivate(), keyPair.getPublic(), privateValue, publicValue);
 	}
 	
 	/**
@@ -116,10 +145,10 @@ public class KeyManager {
 	 * @throws GeneralSecurityException when the public or private key cannot be created
 	 */
 	public static KeyManager createKeyManager(String privateKey, String publicKey) throws GeneralSecurityException {
-		PrivateKey privateKeyObject = KeyManager.getPrivateKey(privateKey);
-		PublicKey publicKeyObject = KeyManager.getPublicKey(publicKey);
+		PrivateKey privateKeyObject = KeyManager.getPrivateKeyFromString(privateKey);
+		PublicKey publicKeyObject = KeyManager.getPublicKeyFromString(publicKey);
 		
-		return new KeyManager(privateKeyObject, publicKeyObject);
+		return new KeyManager(privateKeyObject, publicKeyObject, privateKey, publicKey);
 	}
 	
 	/**
@@ -129,7 +158,7 @@ public class KeyManager {
 	 * @param key64 is the string representation of the key
 	 * @throws GeneralSecurityException when any exception occurs dealing with the key
 	 */
-	protected static PrivateKey getPrivateKey(String key64) throws GeneralSecurityException {
+	public static PrivateKey getPrivateKeyFromString(String key64) throws GeneralSecurityException {
 		Decoder decoder = Base64.getDecoder();
 		byte[] clear = decoder.decode(key64);
 		
@@ -148,7 +177,7 @@ public class KeyManager {
 	 * @param key64 is the string representation of the key
 	 * @throws GeneralSecurityException when any exception occurs dealing with the key
 	 */
-	protected static PublicKey getPublicKey(String stored) throws GeneralSecurityException {
+	public static PublicKey getPublicKeyFromString(String stored) throws GeneralSecurityException {
 		Decoder decoder = Base64.getDecoder();
 		byte[] data = decoder.decode(stored);
 		
