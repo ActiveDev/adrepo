@@ -32,7 +32,9 @@ public class KeyManager {
 	private PrivateKey privateKey;
 	@JsonIgnore
 	private PublicKey publicKey;
+	@JsonIgnore
 	private String privateKeyString;
+	
 	private String publicKeyString;
 
 	/**
@@ -47,8 +49,10 @@ public class KeyManager {
 	 * Private constructor to set the keys from wihtin the createKeyManager
 	 * method. This is necessary as we want to make the class immutable.
 	 * 
-	 * @param publicKey is the publickey to use
 	 * @param privateKey is the privatekey to use
+	 * @param publicKey is the publickey to use
+	 * @param privateKeyString is the string version of the privatekey
+	 * @param publicKeyString is the string version of the publickey
 	 */
 	private KeyManager(PrivateKey privateKey, PublicKey publicKey, String privateKeyString, String publicKeyString) {
 		this.privateKey = privateKey;
@@ -80,39 +84,6 @@ public class KeyManager {
 	 */
 	public String getPublicKeyString() {
 		return publicKeyString;
-	}
-
-	/**
-	 * Generate private key to a string. 
-	 * This is used for marshalling and unmarshalling of keys.
-	 * 
-	 * @throws GeneralSecurityException when any exception occurs dealing with the key
-	 */
-	public static String generatePrivateKeyString(PrivateKey privateKey) throws GeneralSecurityException {
-		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
-		PKCS8EncodedKeySpec spec = fact.getKeySpec(privateKey, PKCS8EncodedKeySpec.class);
-		byte[] packed = spec.getEncoded();
-		
-		Encoder encoder = Base64.getEncoder();
-		String key64 = encoder.encodeToString(packed);
-
-		Arrays.fill(packed, (byte) 0);
-		
-		return key64;
-	}
-
-	/**
-	 * Generate public key to a string. 
-	 * This is used for marshalling and unmarshalling of keys.
-	 * 
-	 * @throws GeneralSecurityException when any exception occurs dealing with the key
-	 */
-	public static String generatePublicKeyString(PublicKey publicKey) throws GeneralSecurityException {
-		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
-		X509EncodedKeySpec spec = fact.getKeySpec(publicKey, X509EncodedKeySpec.class);
-		
-		Encoder encoder = Base64.getEncoder();
-		return encoder.encodeToString(spec.getEncoded());
 	}
 	
 	/**
@@ -150,7 +121,40 @@ public class KeyManager {
 		
 		return new KeyManager(privateKeyObject, publicKeyObject, privateKey, publicKey);
 	}
-	
+
+	/**
+	 * Generate private key to a string. 
+	 * This is used for marshalling and unmarshalling of keys.
+	 * 
+	 * @throws GeneralSecurityException when any exception occurs dealing with the key
+	 */
+	public static String generatePrivateKeyString(PrivateKey privateKey) throws GeneralSecurityException {
+		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
+		PKCS8EncodedKeySpec spec = fact.getKeySpec(privateKey, PKCS8EncodedKeySpec.class);
+		byte[] packed = spec.getEncoded();
+		
+		Encoder encoder = Base64.getEncoder();
+		String key64 = encoder.encodeToString(packed);
+
+		Arrays.fill(packed, (byte) 0);
+		
+		return key64;
+	}
+
+	/**
+	 * Generate public key to a string. 
+	 * This is used for marshalling and unmarshalling of keys.
+	 * 
+	 * @throws GeneralSecurityException when any exception occurs dealing with the key
+	 */
+	public static String generatePublicKeyString(PublicKey publicKey) throws GeneralSecurityException {
+		KeyFactory fact = KeyFactory.getInstance(SecurityUtil.KEY_ALGO);
+		X509EncodedKeySpec spec = fact.getKeySpec(publicKey, X509EncodedKeySpec.class);
+		
+		Encoder encoder = Base64.getEncoder();
+		return encoder.encodeToString(spec.getEncoded());
+	}
+
 	/**
 	 * Loads a private key from a string. 
 	 * This is used for marshalling and unmarshalling of keys.
