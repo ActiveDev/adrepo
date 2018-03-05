@@ -1,5 +1,7 @@
 package com.activedevsolutions.democoin.txn;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +65,27 @@ public class TransactionOutput {
 	 */
 	public boolean isMine(String publicKey) {
 		return (publicKey.equals(recipient));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object object) {
+		if (object == this) return true;
+		if (!(object instanceof TransactionOutput)) return false;
+		TransactionOutput output = (TransactionOutput) object;
+
+		return id.equals(output.getId()) && recipient.equals(output.getRecipient()) && 
+				value.equals(output.getValue()) && parentTransactionId.equals(output.getParentTransactionId());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, recipient, value, parentTransactionId);
 	}
 	
 	/**

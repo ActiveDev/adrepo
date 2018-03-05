@@ -2,6 +2,7 @@ package com.activedevsolutions.democoin;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 
 /**
  * Wrapper around BigDecimal to enforce scale and rounding
@@ -59,5 +60,25 @@ public class CurrencyFormat {
 	@Override
 	public String toString() {
 		return value != null ? value.toString() : "";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object object) {
+		if (object == this) return true;
+		if (!(object instanceof CurrencyFormat)) return false;
+		CurrencyFormat format = (CurrencyFormat) object;
+
+		return value.equals(format.getValue());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(value);
 	}
 }
