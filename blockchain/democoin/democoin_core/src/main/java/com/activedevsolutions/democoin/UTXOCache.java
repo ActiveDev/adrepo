@@ -3,8 +3,8 @@ package com.activedevsolutions.democoin;
 import com.activedevsolutions.democoin.txn.UnspentTxns;
 
 /**
- * Provides a single copy of the blockchain to the jvm. This is not done in the
- * blockchain itself because it needs to be marshalled and un-marshalled across nodes.
+ * Provides a single copy of the UnspentTxns to the jvm. The real reference is passed to
+ * the blockchain itself because it needs to be marshalled and un-marshalled across nodes.
  * 
  * I'm not crazy about this at all. The only reason it is here is because we are 
  * caching the unspent transactions which also need to be part of the blockchain
@@ -18,6 +18,7 @@ public enum UTXOCache {
 	
 	private UnspentTxns UTXOs = new UnspentTxns();
 	
+	// Getter
 	public UnspentTxns getUTXOs() {
 		return UTXOs;
 	}

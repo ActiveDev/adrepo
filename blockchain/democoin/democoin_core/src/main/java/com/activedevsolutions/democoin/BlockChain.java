@@ -12,6 +12,7 @@ import com.activedevsolutions.democoin.exception.DemoCoinException;
 import com.activedevsolutions.democoin.security.SecurityUtil;
 import com.activedevsolutions.democoin.txn.Transaction;
 import com.activedevsolutions.democoin.txn.TransactionOutput;
+import com.activedevsolutions.democoin.txn.UnspentTxns;
 import com.activedevsolutions.democoin.wallet.Wallet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,13 +25,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public final class BlockChain {
 	private static Logger logger = LoggerFactory.getLogger(BlockChain.class);
 		
-	private List<Block> blockList = new ArrayList<>();
+	private final List<Block> blockList = new ArrayList<>();
 
-	private String hashTarget;
+	private final String hashTarget;
 	private Block genesisBlock;
-	private Wallet coinbase;
-	private Wallet startingWallet;
-	private CurrencyFormat startingCoins;
+	private final Wallet coinbase;
+	private final Wallet startingWallet;
+	private final CurrencyFormat startingCoins;
+	private final UnspentTxns UTXOs;
 
 	/**
 	 * Constructor used when the block chain has not yet been created.
@@ -41,19 +43,12 @@ public final class BlockChain {
 	 * @param coinbase is the wallet that initiates the starting coins
 	 * @param startingWallet is the wallet where all of the coins for circulation will be held
 	 */
-	public BlockChain(int difficulty, double startingCoins, Wallet coinbase, Wallet startingWallet) {
-		this(difficulty);
+	public BlockChain(int difficulty, UnspentTxns UTXOs, double startingCoins, Wallet coinbase, Wallet startingWallet) {
+		hashTarget = SecurityUtil.getDificultyString(difficulty);
+		this.UTXOs = UTXOs;
 		this.startingCoins = new CurrencyFormat(startingCoins);
 		this.startingWallet = startingWallet;
 		this.coinbase = coinbase;
-	}
-
-	/**
-	 * Constructor used when the blockchain has already been established.
-	 */
-	public BlockChain(int difficulty) {
-		//TODO Add UnspentTxns here so that it can be serialized and de-serialized
-		hashTarget = SecurityUtil.getDificultyString(difficulty);
 	}
 
 	// Getters
@@ -107,7 +102,7 @@ public final class BlockChain {
 				genesisTransaction.getValue(), genesisTransaction.getTransactionId())); 
 		
 		// its important to store our first txn in the UTXOs list
-		UTXOCache.INSTANCE.getUTXOs().add(genesisTransaction.getOutputs().get(0).getId(), genesisTransaction.getOutputs().get(0)); 
+		UTXOs.add(genesisTransaction.getOutputs().get(0).getId(), genesisTransaction.getOutputs().get(0)); 
 
 		logger.info("Creating and Mining Genesis block... ");
 		genesisBlock = new Block("0");

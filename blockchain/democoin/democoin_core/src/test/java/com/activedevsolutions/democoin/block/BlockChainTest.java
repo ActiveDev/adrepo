@@ -7,6 +7,8 @@ import org.junit.Test;
 import com.activedevsolutions.democoin.Block;
 import com.activedevsolutions.democoin.BlockChain;
 import com.activedevsolutions.democoin.CurrencyFormat;
+import com.activedevsolutions.democoin.UTXOCache;
+import com.activedevsolutions.democoin.txn.UnspentTxns;
 import com.activedevsolutions.democoin.wallet.Wallet;
 
 public class BlockChainTest {
@@ -17,7 +19,8 @@ public class BlockChainTest {
 		Wallet startingWallet = new Wallet();
 		
 		try {
-			BlockChain blockChain = new BlockChain(4, 100, coinbase, startingWallet);
+			UnspentTxns UTXOs = UTXOCache.INSTANCE.getUTXOs();
+			BlockChain blockChain = new BlockChain(4, UTXOs, 100, coinbase, startingWallet);
 			coinbase.create();
 			startingWallet.create();
 			blockChain.createGenesisBlock();

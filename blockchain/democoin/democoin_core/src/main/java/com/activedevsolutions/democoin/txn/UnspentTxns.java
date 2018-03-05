@@ -10,7 +10,7 @@ import java.util.Map;
  *
  */
 public class UnspentTxns {
-	private Map<String, TransactionOutput> UTXOs = new HashMap<>();
+	private final Map<String, TransactionOutput> UTXOs = new HashMap<>();
 	
 	public TransactionOutput get(String key) {
 		//TODO Clone before returning
