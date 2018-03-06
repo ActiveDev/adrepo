@@ -1,15 +1,5 @@
-#adrepo
+# adrepo
 
 For general projects and samples.
 
-Project are built using:
-
-* Spring Tool Suite (STS)
-* Java 1.8
-* Maven 3.3.3
-
-##helper
-Projects under this folder are helper libraries
-
-##microservices
-These projects focus on microservice architecture
+This repository does not contain any production code. It is simply meant to start discussions and demonstrate key concepts.
